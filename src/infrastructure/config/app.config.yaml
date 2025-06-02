@@ -1,0 +1,11 @@
+app:
+  name: nestj-data-generic-sample-service
+  port: 3000
+  env: local
+  swagger:
+    path: docs
+
+datasource:
+  mongo:
+    uri: mongodb://mongo1:27017,mongo2:27018
+    database-name: users

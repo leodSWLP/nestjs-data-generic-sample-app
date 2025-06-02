@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  mongo1:
+    image: mongo:7.0
+    hostname: mongo1
+    container_name: mongo1
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo1-data:/data/db
+    networks:
+      - mongo-network
+    command: mongod --replSet myReplicaSet --bind_ip_all
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo2:
+    image: mongo:7.0
+    hostname: mongo2
+    container_name: mongo2
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo2-data:/data/db
+    networks:
+      - mongo-network
+    command: mongod --replSet myReplicaSet --bind_ip_all
+    depends_on:
+      - mongo1
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo3:
+    image: mongo:7.0
+    hostname: mongo3
+    container_name: mongo3
+    ports:
+      - '27019:27017'
+    volumes:
+      - mongo3-data:/data/db
+    networks:
+      - mongo-network
+    command: mongod --replSet myReplicaSet --bind_ip_all
+    depends_on:
+      - mongo1
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongosetup:
+    image: mongo:7.0
+    container_name: mongosetup
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    networks:
+      - mongo-network
+    entrypoint: >
+      bash -c "
+        sleep 10 &&
+        mongosh --host mongo1:27017 --eval '
+          rs.initiate({
+            _id: \"myReplicaSet\",
+            version: 1,
+            members: [
+              { _id: 0, host: \"mongo1:27017\", priority: 2 },
+              { _id: 1, host: \"mongo2:27017\", priority: 1 },
+              { _id: 2, host: \"mongo3:27017\", priority: 1 }
+            ]
+          });
+        ' &&
+        echo 'Replica set initiated'"
+    restart: no
+
+volumes:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
+
+networks:
+  mongo-network:
+    driver: bridge

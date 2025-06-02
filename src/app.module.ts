@@ -1,0 +1,37 @@
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import configuration from './infrastructure/config/configuration';
+import { UserModule } from './user-mongoose-test/user.module';
+import { TransactionMiddleware } from '@dev-force/nestjs-data-generic';
+
+@Module({
+  imports: [
+    UserModule,
+    ConfigModule.forRoot({
+      load: [configuration],
+      isGlobal: true,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          uri: configService.getOrThrow('datasource.mongo.uri'),
+          dbName: configService.getOrThrow('datasource.mongo.database-name'),
+        };
+      },
+    }),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TransactionMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

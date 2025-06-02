@@ -1,0 +1,4 @@
+datasource:
+  mongo:
+    uri: $DATABASE_URI
+    database-name: $DATABASE_NAME

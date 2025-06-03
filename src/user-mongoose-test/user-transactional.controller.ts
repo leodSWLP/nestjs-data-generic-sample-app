@@ -1,17 +1,14 @@
 import { Controller, Get, Logger, Post } from '@nestjs/common';
 import { UserService } from './business/user.service';
 
-import { Transactional } from '@dev-force/nestjs-data-generic';
+import { Transactional } from '@leodSWLP/nestjs-data-generic';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UserEntity } from './business/entities/user.entities';
 import { plainToInstance } from 'class-transformer';
+import { UserEntity } from './business/entities/user.entities';
 import { UserDocument } from './data/models/user.model';
 
 @Controller('mongo-test/transactions/users')
 export class UserTransactionalController {
-  private readonly logger = new Logger(`controller<${this.constructor.name}>`, {
-    timestamp: true,
-  });
   private userCounter = 0;
 
   constructor(private readonly userService: UserService) {}

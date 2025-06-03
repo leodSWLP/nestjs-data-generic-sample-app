@@ -1,4 +1,4 @@
-import { BaseEntity } from '@dev-force/nestjs-data-generic';
+import { BaseEntity } from '@leodSWLP/nestjs-data-generic';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserEntity extends BaseEntity {

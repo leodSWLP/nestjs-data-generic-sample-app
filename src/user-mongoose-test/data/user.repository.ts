@@ -1,8 +1,8 @@
-import { BaseModelRepository } from '@dev-force/nestjs-data-generic';
-import { UserDocument, UserModel } from './models/user.model';
+import { BaseModelRepository } from '@leodSWLP/nestjs-data-generic';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
+import { UserDocument, UserModel } from './models/user.model';
 
 export class UserRepository extends BaseModelRepository<UserDocument> {
   constructor(

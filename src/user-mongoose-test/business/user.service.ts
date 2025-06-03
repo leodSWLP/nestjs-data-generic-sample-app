@@ -1,10 +1,10 @@
+import { Transactional } from '@leodSWLP/nestjs-data-generic';
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from '../data/user.repository';
 import { plainToInstance } from 'class-transformer';
-import { UserDocument, UserModel } from '../data/models/user.model';
-import { UserEntity } from './entities/user.entities';
 import { FilterQuery, SortOrder } from 'mongoose';
-import { Transactional } from '@dev-force/nestjs-data-generic';
+import { UserDocument, UserModel } from '../data/models/user.model';
+import { UserRepository } from '../data/user.repository';
+import { UserEntity } from './entities/user.entities';
 
 @Injectable()
 export class UserService {

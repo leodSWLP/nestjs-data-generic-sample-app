@@ -1,4 +1,4 @@
-import { BaseModel, createBaseSchema } from '@dev-force/nestjs-data-generic';
+import { BaseModel, createBaseSchema } from '@leodSWLP/nestjs-data-generic';
 import { Prop, Schema } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 

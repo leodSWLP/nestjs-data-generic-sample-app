@@ -1,3 +1,4 @@
+import { TransactionMiddleware } from '@leodSWLP/nestjs-data-generic';
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -5,7 +6,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './infrastructure/config/configuration';
 import { UserModule } from './user-mongoose-test/user.module';
-import { TransactionMiddleware } from '@dev-force/nestjs-data-generic';
 
 @Module({
   imports: [

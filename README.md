@@ -1,98 +1,162 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Demo Service with MongoDB Transactions
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is a demo NestJS service showcasing transactional operations with a MongoDB replica set cluster. The service includes a `UserService` and `UserTransactionalController` for managing users with transactional and non-transactional operations.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Prerequisites
 
-## Description
+- **Node.js**: Version 20 or higher
+- **npm**: Version 10 or higher
+- **Docker**: Latest version with Docker Compose support
+- **MongoDB**: Access to a MongoDB cluster (configured via Docker Compose)
+- Administrative access to update the host file (for MongoDB cluster connectivity)
+- A GitHub Personal Access Token (PAT) with `read:packages` scope for GitHub Packages
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Setup Instructions
 
-## Project setup
+Follow these steps to set up and run the NestJS demo service:
 
-```bash
-$ npm install
-```
+### 1. Configure npm Authentication for GitHub Packages
 
-## Compile and run the project
+To install the local package `@leodSWLP/nestjs-data-generic` from GitHub Packages, create an `.npmrc` file in the project root with your GitHub Personal Access Token (PAT).
 
-```bash
-# development
-$ npm run start
+1. Generate a GitHub PAT:
+   - Log in to [GitHub](https://github.com/).
+   - Go to Settings > Developer settings > Personal access tokens > Tokens (classic).
+   - Generate a new token with the `read:packages` scope (and `write:packages` if publishing).
+2. Create an `.npmrc` file in the project root and add the following:
 
-# watch mode
-$ npm run start:dev
+   ```plaintext
+   @leodSWLP:registry=https://npm.pkg.github.com/
+   //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+   always-auth=true
+   ```
 
-# production mode
-$ npm run start:prod
-```
+   - Replace `YOUR_GITHUB_PAT` with the Personal Access Token you generated.
+   - The `always-auth=true` setting ensures authentication is always required for the GitHub Package Registry.
 
-## Run tests
+   **Example**:
 
-```bash
-# unit tests
-$ npm run test
+   ```plaintext
+   @leodSWLP:registry=https://npm.pkg.github.com/
+   //npm.pkg.github.com/:_authToken=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   always-auth=true
+   ```
 
-# e2e tests
-$ npm run test:e2e
+   **Note**: Keep the `.npmrc` file secure and do not commit it to version control. Add it to `.gitignore` to prevent accidental exposure.
 
-# test coverage
-$ npm run test:cov
-```
+### 2. Install Dependencies
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Install the required Node.js dependencies using npm.
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+If you encounter high-severity vulnerabilities, run the following to fix them:
 
-## Resources
+```bash
+npm audit fix
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+If issues persist, manually update vulnerable packages or refer to the npm audit report for guidance.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 3. Start the MongoDB Cluster
 
-## Support
+The service requires a MongoDB replica set cluster to enable transactions. Use Docker Compose to start the cluster.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. Ensure you have a `docker-compose.yml` file configured for a MongoDB replica set (example configuration provided below).
+2. Run the following command to start the MongoDB cluster in detached mode:
 
-## Stay in touch
+   ```bash
+   docker-compose up -d
+   ```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 4. Update Host File
 
-## License
+The MongoDB cluster requires specific hostnames (`mongo1`, `mongo2`) for connectivity, as it checks domain names and won't work with `127.0.0.1` or `localhost`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. Edit your system's host file:
+   - **Linux/macOS**: `/etc/hosts`
+   - **Windows**: `C:\Windows\System32\drivers\etc\hosts`
+2. Add the following entries:
+
+   ```plaintext
+   127.0.0.1 mongo1
+   127.0.0.1 mongo2
+   ```
+
+   **Note**: Administrative privileges are required to edit the host file. On Linux/macOS, use `sudo nano /etc/hosts`. On Windows, open Notepad as Administrator.
+
+3. Save the changes and verify connectivity by pinging `mongo1` and `mongo2`:
+
+   ```bash
+   ping mongo1
+   ping mongo2
+   ```
+
+### 5. Start the NestJS Service
+
+Start the NestJS application in development mode:
+
+```bash
+npm run start:dev
+```
+
+This launches the service with hot-reloading enabled. The application should connect to the MongoDB cluster and be accessible at `http://localhost:3000` (or the port configured in your `main.ts` or `app.module.ts`).
+
+## API Endpoints
+
+Open `http://localhost:3000/docs` in your browser to view the interactive API documentation.
+The service provides the following endpoints for testing transactional and non-transactional operations:
+
+- **GET `/mongo-test/transactions/users`**  
+  Lists all users in the MongoDB collection. Use this to verify the database state after operations.
+
+- **POST `/mongo-test/transactions/users/add-and-update-user-without-tx-success`**  
+  Creates and updates a user non-transactionally (changes persist).
+
+- **POST `/mongo-test/transactions/users/add-and-update-user-without-tx-error`**  
+  Creates a user non-transactionally, throws an error (user persists despite the error).
+
+- **POST `/mongo-test/transactions/users/add-and-update-user-with-tx`**  
+  Creates and updates a user transactionally (changes commit if no error).
+
+- **POST `/mongo-test/transactions/users/create-and-update-user-join-tx`**  
+  Creates a user using a transactional sub-method and updates it (changes commit).
+
+- **POST `/mongo-test/transactions/users/create-and-update-user-join-tx-throw-error`**  
+  Creates and updates a user transactionally, then throws an error (changes roll back).
+
+- **POST `/mongo-test/transactions/users/create-before-tx-and-error`**  
+  Creates a user non-transactionally, then creates and updates users transactionally before throwing an error (non-transactional user persists, transactional changes roll back).
+
+- **POST `/mongo-test/transactions/users/reset`**  
+  Deletes all users in the collection to reset the database.
+
+## Testing the Service
+
+1. Reset the database before testing:
+
+   ```bash
+   curl -X POST http://localhost:3000/mongo-test/transactions/users/reset
+   ```
+
+2. Test the edge case for non-transactional and transactional operations:
+
+   ```bash
+   curl -X POST http://localhost:3000/mongo-test/transactions/users/create-before-tx-and-error
+   ```
+
+3. Verify the database state (should only show the non-transactional user):
+
+   ```bash
+   curl http://localhost:3000/mongo-test/transactions/users
+   ```
+
+4. Explore the API using Swagger:
+   - Open `http://localhost:3000/docs` in your browser to view the interactive API documentation.
+
+## Troubleshooting
+
+- **npm Install Fails**: Ensure your `.npmrc` file has a valid GitHub PAT with `read:packages` scope and `always-auth=true`. Run `npm cache clean --force` and retry `npm install`. Verify the package `@leodSWLP/nestjs-data-generic` is accessible in the GitHub Package Registry.
+- **MongoDB Connection Issues**: Verify the host file entries (`mongo1`, `mongo2`) and ensure the Docker Compose MongoDB cluster is running (`docker ps`). Check the replica set status with:

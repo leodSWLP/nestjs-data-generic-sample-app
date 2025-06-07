@@ -2,8 +2,6 @@ import { TransactionMiddleware } from '@leodSWLP/nestjs-data-generic';
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import configuration from './infrastructure/config/configuration';
 import { UserModule } from './user-mongoose-test/user.module';
 
@@ -25,8 +23,6 @@ import { UserModule } from './user-mongoose-test/user.module';
       },
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

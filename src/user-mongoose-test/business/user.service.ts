@@ -1,26 +1,36 @@
-import { Transactional } from '@leodSWLP/nestjs-data-generic';
-import { Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import {
+  BaseEntityService,
+  Transactional,
+} from '@leodSWLP/nestjs-data-generic';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FilterQuery, SortOrder } from 'mongoose';
 import { UserDocument, UserModel } from '../data/models/user.model';
 import { UserRepository } from '../data/user.repository';
 import { UserEntity } from './entities/user.entities';
 
 @Injectable()
-export class UserService {
-  constructor(protected readonly repository: UserRepository) {}
+export class UserService extends BaseEntityService<UserEntity, UserDocument> {
+  constructor(protected readonly repository: UserRepository) {
+    super(repository, UserEntity, UserModel as new () => UserDocument);
+  }
 
-  async getUser(userId: string) {
-    const document = await this.repository.findById({ id: userId });
-    console.log('getUser():', JSON.stringify(document));
+  throwError() {
+    throw new Error('Test - Trigger Rollback');
+  }
+
+  async getUser(userId: string): Promise<UserEntity | undefined> {
+    const document = await this.getEntity({ id: userId });
     return document;
   }
 
+  @Transactional()
   async getUserThrowError(userId: string) {
-    const document = await this.repository.findById({ id: userId });
-    console.log('getUserThrowError():', JSON.stringify(document));
+    this.logger.debug(`getUserThrowError(): userId = ${userId}`);
+    const document = await this.getEntity({ id: userId });
+    this.logger.debug(
+      `getUserThrowError(): document = ${JSON.stringify(document)}`,
+    );
     this.throwError();
-    return document;
   }
 
   async listUser(
@@ -28,82 +38,97 @@ export class UserService {
     listOptions?: {
       offset?: number;
       size?: number;
-      sort?: {
-        [key: string]: SortOrder;
-      };
+      sort?: { [key: string]: SortOrder };
     },
-  ) {
-    const documents = await this.repository.list(filter ?? {}, listOptions);
-    console.log('getUser():', JSON.stringify(documents));
-    return documents;
+  ): Promise<UserEntity[]> {
+    const entities = await this.list(filter ?? {}, listOptions);
+    return entities;
   }
 
+  @Transactional()
   async listUserThrowError(
     filter?: FilterQuery<UserModel>,
     listOptions?: {
       offset?: number;
       size?: number;
-      sort?: {
-        [key: string]: SortOrder;
-      };
+      sort?: { [key: string]: SortOrder };
     },
   ) {
-    const documents = await this.repository.list(filter ?? {}, listOptions);
-    console.log('listUserThrowError():', JSON.stringify(documents));
+    this.logger.debug(
+      `listUserThrowError(): filter = ${JSON.stringify(filter)}`,
+    );
+    const entities = await this.list(filter ?? {}, listOptions);
+    this.logger.debug(
+      `listUserThrowError(): entities = ${JSON.stringify(entities)}`,
+    );
     this.throwError();
-    return documents;
   }
 
-  async createUser(userEntity: Omit<UserEntity, 'id'>) {
-    const model = plainToInstance(UserModel, userEntity);
-    const document = await this.repository.create(model);
-    console.log('createUser():', JSON.stringify(document));
-    return document;
+  async createUser(userEntity: Omit<UserEntity, 'id'>): Promise<UserEntity> {
+    const entity = await this.add(userEntity);
+    return entity;
   }
 
   @Transactional()
-  async createUserTransactional(userEntity: Omit<UserEntity, 'id'>) {
-    const model = plainToInstance(UserModel, userEntity);
-    const document = await this.repository.create(model);
-    console.log('createUserTransactional():', JSON.stringify(document));
-    return document;
+  async createUserTransactional(
+    userEntity: Omit<UserEntity, 'id'>,
+  ): Promise<UserEntity> {
+    this.logger.debug(
+      `createUserTransactional(): userEntity = ${JSON.stringify(userEntity)}`,
+    );
+    const entity = await this.add(userEntity);
+    this.logger.debug(
+      `createUserTransactional(): entity = ${JSON.stringify(entity)}`,
+    );
+    return entity;
   }
 
-  async createMultipleUsers(users: Omit<UserEntity, 'id'>[]) {
-    const documents: UserDocument[] = [];
+  async createMultipleUsers(
+    users: Omit<UserEntity, 'id'>[],
+  ): Promise<UserEntity[]> {
+    this.logger.debug(
+      `createMultipleUsers(): users = ${JSON.stringify(users)}`,
+    );
+    const entities: UserEntity[] = [];
     for (const user of users) {
-      const document = await this.createUser(user);
-      documents.push(document);
+      const entity = await this.createUser(user);
+      entities.push(entity);
     }
-    return documents;
+    this.logger.debug(
+      `createMultipleUsers(): entities = ${JSON.stringify(entities)}`,
+    );
+    return entities;
   }
 
   @Transactional()
-  async createMultipleUsersTransactional(users: Omit<UserEntity, 'id'>[]) {
-    const documents: UserDocument[] = [];
+  async createMultipleUsersTransactional(
+    users: Omit<UserEntity, 'id'>[],
+  ): Promise<UserEntity[]> {
+    this.logger.debug(
+      `createMultipleUsersTransactional(): users = ${JSON.stringify(users)}`,
+    );
+    const entities: UserEntity[] = [];
     for (const user of users) {
-      const document = await this.createUserTransactional(user);
-      documents.push(document);
+      const entity = await this.createUserTransactional(user);
+      entities.push(entity);
     }
-    return documents;
+    this.logger.debug(
+      `createMultipleUsersTransactional(): entities = ${JSON.stringify(entities)}`,
+    );
+    return entities;
   }
 
-  async updateUser(userEntity: UserEntity) {
-    const document = await this.repository.updateById(userEntity, userEntity);
-    console.log('createUser():', document ? JSON.stringify(document) : '');
-    return document;
+  async updateUser(userEntity: UserEntity): Promise<UserEntity> {
+    return await this.update({ id: userEntity.id }, userEntity);
   }
 
-  async deleteUser(userEntity: UserEntity) {
-    const document = await this.repository.deleteById(userEntity);
-    console.log('createUser():', JSON.stringify(document));
+  async deleteUser(userEntity: UserEntity): Promise<void> {
+    await this.remove({ id: userEntity.id });
   }
 
-  async resetMongo() {
+  async resetMongo(): Promise<void> {
+    this.logger.debug(`resetMongo(): Enter`);
     await this.repository.deleteAll();
-  }
-
-  throwError() {
-    throw new Error('Test - Trigger Rollback');
+    this.logger.debug(`resetMongo(): All documents deleted`);
   }
 }

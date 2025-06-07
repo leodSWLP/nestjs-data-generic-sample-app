@@ -29,9 +29,7 @@ export class UserTransactionalController {
     type: [UserEntity],
   })
   async listUsers() {
-    return (await this.userService.listUser()).map((item) =>
-      this.parseResponseEntity(item),
-    );
+    return await this.userService.listUser();
   }
 
   @Post('add-and-update-user-without-tx-success')
@@ -53,8 +51,7 @@ export class UserTransactionalController {
     });
 
     user.password = 'password1';
-    await this.userService.updateUser(user);
-    return this.parseResponseEntity(user);
+    return await this.userService.updateUser(user);
   }
 
   @Post('add-and-update-user-without-tx-error')
@@ -101,8 +98,7 @@ export class UserTransactionalController {
     });
 
     user.password = 'password1';
-    await this.userService.updateUser(user);
-    return this.parseResponseEntity(user);
+    return await this.userService.updateUser(user);
   }
 
   @Post('create-and-update-user-join-tx')
@@ -127,7 +123,6 @@ export class UserTransactionalController {
 
     user.password = 'password1';
     await this.userService.updateUser(user);
-    return this.parseResponseEntity(user);
   }
 
   @Post('create-and-update-user-join-tx-throw-error')
@@ -152,6 +147,55 @@ export class UserTransactionalController {
 
     user.password = 'password1';
     await this.userService.updateUser(user);
+    this.userService.throwError();
+  }
+
+  @Post('create-before-tx-and-error')
+  @ApiOperation({
+    summary:
+      'Create user non-transactionally, then create and update transactionally with error',
+    description:
+      'Creates a user non-transactionally with username "User6", email "test6@gmail.com", and password "password". Then, within a transaction, creates multiple users using createMultipleUsersTransactional, updates one of them, and throws an error. The initial non-transactional user is committed, but the transactional operations (creation and update) are rolled back due to the error.',
+  })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Throws an error after transactional operations. The non-transactional user persists, but transactional changes are rolled back.',
+  })
+  async createBeforeTxAndError() {
+    const initialUser = await this.userService.createUser({
+      username: `create-before-tx-and-error-${++this.userCounter}`,
+      email: `test-${this.userCounter}@gmail.com`,
+      password: 'password',
+    });
+
+    await this.transactionalBlockWithError();
+
+    return initialUser;
+  }
+
+  @Transactional()
+  private async transactionalBlockWithError() {
+    const usersToCreate = [
+      {
+        username: `create-before-tx-and-error-multi-1-${this.userCounter}`,
+        email: `test-multi-1-${this.userCounter}@gmail.com`,
+        password: 'password',
+      },
+      {
+        username: `create-before-tx-and-error-multi-2-${this.userCounter}`,
+        email: `test-multi-2-${this.userCounter}@gmail.com`,
+        password: 'password',
+      },
+    ];
+
+    const createdUsers =
+      await this.userService.createMultipleUsersTransactional(usersToCreate);
+
+    const userToUpdate = createdUsers[0];
+    userToUpdate.password = 'password1';
+    await this.userService.updateUser(userToUpdate);
+
     this.userService.throwError();
   }
 
